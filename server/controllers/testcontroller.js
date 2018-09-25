@@ -24,4 +24,8 @@ router.get('/mycontacts', function(req, res) {
     ])
 })
 
+router.post('/one', function(req, res){
+    res.send("Test 1 went through!")
+})
+
 module.exports = router;
