@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const sequelize = require('../db')
 const User = sequelize.import('../models/user')
+const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 router.post('/createuser', function (req, res) {
@@ -10,11 +11,11 @@ router.post('/createuser', function (req, res) {
     
     User.create({
         username: username,
-        passwordhash: pass
+        passwordhash: bcrypt.hashSync(pass, 10)
     })
     .then(
         function createSuccess(user) {
-           let token = jwt.sign({id: user.id}, "i_am_secret", {expiresIn: 60*10});
+           let token = jwt.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: 60*10});
             
             res.json({
                 user: user,
@@ -24,6 +25,33 @@ router.post('/createuser', function (req, res) {
         },
         function createError(err) {
             res.send(500, err.message)
+        }
+    )
+})
+
+router.post('/signin', function(req, res){
+    User.findOne( { where: { username: req.body.user.username } } ).then(
+        function(user) {
+            if (user) {
+                bcrypt.compare(req.body.user.password, user.passwordhash, function(err, matches) {
+                    if (matches) {
+                        let token = jwt.sign({id: user.id}, process.env.JWT_SECRET, {expiresIn: 60*10})
+                        
+                        res.json({
+                            user: user,
+                            message: "Successfully authenticated",
+                            sessionToken: token
+                        })
+                    } else {
+                        res.status(502).send({ error: "You failed, bruh."})
+                    }
+                })
+            } else {
+                res.status(500).send({ error: "You failed to authenticate." });
+            }
+        },
+        function(err) {
+            res.status(501).send({error: "You failed, bruh."})
         }
     )
 })
