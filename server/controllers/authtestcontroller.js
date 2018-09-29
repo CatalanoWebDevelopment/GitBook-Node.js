@@ -67,4 +67,25 @@ router.get('/:id', function(req, res) {
         );
 });
 
+/******************
+* DELETE ITEM FOR INDIVIDUAL USER
+******************/
+        //1                //2
+router.delete('/delete/:id', function(req, res) {
+    var data = req.params.id; //3
+    var userid = req.user.id; //4
+
+    AuthTestModel
+        .destroy({ //5
+            where: { id: data, owner: userid } //6
+        }).then(
+            function deleteLogSuccess(data){ //7
+                res.send("you removed a log");
+            },
+            function deleteLogError(err){ //8
+                res.send(500, err.message);
+            }
+        );
+});
+
 module.exports = router;
