@@ -88,4 +88,29 @@ router.delete('/delete/:id', function(req, res) {
         );
 });
 
+/******************
+* UPDATE ITEM FOR INDIVIDUAL USER
+******************/
+       //1    //2
+router.put('/update/:id', function(req, res) {
+    var data = req.params.id; //3
+    var authtestdata = req.body.authtestdata.item; //4
+
+    AuthTestModel
+        .update({ //5
+            authtestdata: authtestdata //6
+        },
+        {where: {id: data}} //7
+        ).then(
+            function updateSuccess(updatedLog) { //8
+                res.json({
+                    authtestdata: authtestdata
+                });            
+            },
+            function updateError(err){ //9
+                res.send(500, err.message);
+            }
+        )
+});
+
 module.exports = router;
